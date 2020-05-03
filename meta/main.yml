@@ -1,6 +1,7 @@
 galaxy_info:
   author: Frédéric Gierlinger
   description: Shlint url shortener
+  role_name: shlink-docker
 
   # If the issue tracker for your role is not on github, uncomment the
   # next line and provide a value
