@@ -1,0 +1,75 @@
+---
+# tasks file for ansible-role-shlink
+- name: create shlink network
+  docker_network:
+      name: shlink
+
+- name: deploy shlink
+  docker_container:
+      name: shlink_shlink
+      image: '{{ shlink_image }}:{{ shlink_image_tag }}'
+      state: started
+      restart_policy: unless-stopped
+      env:
+          SHORT_DOMAIN_HOST: '{{ shlink_domain_host }}'
+          SHORT_DOMAIN_SCHEMA: '{{ shlink_domain_schema }}'
+      networks:
+          - name: shlink
+      purge_networks: yes
+      published_ports:
+          - '{{ shlink_publish_port }}:8080'
+  register: docker_shlink_shlink
+
+- name: check if server.json already exists
+  stat:
+      path: '{{ shlink_server_json_file }}'
+  register: serverfile
+
+- name: get new api key and create server_json only if file does not exist
+  block:
+    - name: get api key from shlink
+      shell: docker exec shlink_shlink shlink api-key:generate | egrep -o '".*"' | tr -d '"'
+      register: shlink_new_api_key
+      when: shlink_api_key is not defined
+
+    - name: set api key
+      set_fact:
+          shlink_api_key: "{{ shlink_new_api_key.stdout }}"
+
+    - name: debug shlink_api_key
+      debug: var=shlink_api_key
+      tags: [never, debug]
+
+    - name: create servers.json file
+      copy:
+          dest: '{{ shlink_server_json_file }}'
+          content: |
+              [
+                  {
+                      "name": "Main server",
+                      "url": "{{ shlink_domain_schema }}://{{ shlink_domain_host }}:{{ shlink_publish_port }}",
+                      "apiKey": "{{ shlink_api_key }}"
+                  }
+              ]
+  when: not serverfile.stat.exists or docker_shlink_shlink is changed or shlink_recreate
+
+- name: deploy shlink web
+  docker_container:
+      name: shlink_web
+      image: '{{ shlink_web_image }}:{{ shlink_web_image_tag }}'
+      state: started
+      restart_policy: unless-stopped
+      env: '{{ shlink_web_env }}'
+      networks:
+        - name: shlink
+      purge_networks: yes
+      keep_volumes: no
+      volumes:
+          '{{ shlink_server_json_file }}:/usr/share/nginx/html/servers.json'
+      published_ports:
+          - '{{ shlink_web_publish_port }}:80'
+
+- name: wait for shlink web port to be available
+  wait_for:
+      port: '{{ shlink_web_publish_port }}'
+      state: started

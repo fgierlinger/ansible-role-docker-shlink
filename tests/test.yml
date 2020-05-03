@@ -1,0 +1,5 @@
+---
+- hosts: all
+  roles:
+    - geerlingguy.docker
+    - { role: ../ansible-role-shlink, tags: shlink }
