@@ -61,7 +61,7 @@
       restart_policy: unless-stopped
       env: '{{ shlink_web_env }}'
       networks:
-        - name: shlink
+          - name: shlink
       purge_networks: yes
       keep_volumes: no
       volumes:
