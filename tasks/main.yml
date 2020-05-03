@@ -18,6 +18,7 @@
       purge_networks: yes
       published_ports:
           - '{{ shlink_publish_port }}:8080'
+      labels: '{{ shlink_labels }}'
   register: docker_shlink_shlink
 
 - name: check if server.json already exists
@@ -65,9 +66,10 @@
       purge_networks: yes
       keep_volumes: no
       volumes:
-          '{{ shlink_server_json_file }}:/usr/share/nginx/html/servers.json'
+          - '{{ shlink_server_json_file }}:/usr/share/nginx/html/servers.json'
       published_ports:
           - '{{ shlink_web_publish_port }}:80'
+      labels: '{{ shlink_web_labels }}'
 
 - name: wait for shlink web port to be available
   wait_for:
