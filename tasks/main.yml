@@ -2,7 +2,7 @@
 # tasks file for ansible-role-shlink
 - name: create shlink network
   docker_network:
-      name: shlink
+      name: '{{ shlink_docker_network }}'
 
 - name: deploy shlink
   docker_container:
@@ -14,7 +14,7 @@
           SHORT_DOMAIN_HOST: '{{ shlink_domain_host }}'
           SHORT_DOMAIN_SCHEMA: '{{ shlink_domain_schema }}'
       networks:
-          - name: shlink
+          - name: '{{ shlink_docker_network }}'
       purge_networks: yes
       published_ports:
           - '{{ shlink_publish_port }}:8080'
@@ -62,7 +62,7 @@
       restart_policy: unless-stopped
       env: '{{ shlink_web_env }}'
       networks:
-          - name: shlink
+          - name: '{{ shlink_docker_network }}'
       purge_networks: yes
       keep_volumes: no
       volumes:

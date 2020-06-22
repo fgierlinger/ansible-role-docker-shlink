@@ -17,3 +17,7 @@ shlink_web_labels: []
 shlink_server_json_file: /root/shlink_server.json
 
 shlink_recreate: no
+
+# name of the docker network which the container
+# will be attached to
+shlink_docker_network: shlink
