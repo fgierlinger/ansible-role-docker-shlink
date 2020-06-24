@@ -3,16 +3,18 @@
 shlink_image: shlinkio/shlink
 shlink_image_tag: latest
 shlink_env: {}
-shlink_publish_port: 8083
-shlink_domain_host: '{{ ansible_fqdn }}'
-shlink_domain_schema: http
-shlink_labels: []
+shlink_port: 8080
+shlink_published_ports:
+  - '8080:{{ shlink_port }}'
+shlink_labels: {}
 
 shlink_web_image: shlinkio/shlink-web-client
 shlink_web_image_tag: latest
 shlink_web_env: {}
-shlink_web_publish_port: 80
-shlink_web_labels: []
+shlink_web_port: 80
+shlink_web_published_ports:
+  - '80:{{ shlink_web_port }}'
+shlink_web_labels: {}
 
 shlink_server_json_file: /root/shlink_server.json
 

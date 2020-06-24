@@ -1,5 +1,12 @@
 ---
 # tasks file for ansible-role-shlink
+- name: check if required variables are set
+  assert:
+    that:
+      - shlink_domain_schema is defined
+      - shlink_domain_host is defined
+      - shlink_domain_port is defined
+      
 - name: create shlink network
   docker_network:
       name: '{{ shlink_docker_network }}'
@@ -16,8 +23,7 @@
       networks:
           - name: '{{ shlink_docker_network }}'
       purge_networks: yes
-      published_ports:
-          - '{{ shlink_publish_port }}:8080'
+      published_ports: '{{ shlink_published_ports }}'
       labels: '{{ shlink_labels }}'
   register: docker_shlink_shlink
 
@@ -36,6 +42,9 @@
     - name: set api key
       set_fact:
           shlink_api_key: "{{ shlink_new_api_key.stdout }}"
+      when: 
+        - shlink_new_api_key is defined
+        - not ansible_check_mode
 
     - name: debug shlink_api_key
       debug: var=shlink_api_key
@@ -48,11 +57,13 @@
               [
                   {
                       "name": "Main server",
-                      "url": "{{ shlink_domain_schema }}://{{ shlink_domain_host }}:{{ shlink_publish_port }}",
+                      "url": "{{ shlink_domain_schema }}://{{ shlink_domain_host }}:{{ shlink_domain_port }}",
                       "apiKey": "{{ shlink_api_key }}"
                   }
               ]
-  when: not serverfile.stat.exists or docker_shlink_shlink is changed or shlink_recreate
+  when: 
+    - not serverfile.stat.exists or docker_shlink_shlink is changed or shlink_recreate
+    - not ansible_check_mode
 
 - name: deploy shlink web
   docker_container:
@@ -67,11 +78,10 @@
       keep_volumes: no
       volumes:
           - '{{ shlink_server_json_file }}:/usr/share/nginx/html/servers.json'
-      published_ports:
-          - '{{ shlink_web_publish_port }}:80'
+      published_ports: '{{ shlink_web_published_ports }}'
       labels: '{{ shlink_web_labels }}'
 
 - name: wait for shlink web port to be available
   wait_for:
-      port: '{{ shlink_web_publish_port }}'
+      port: '{{ shlink_web_port }}'
       state: started
