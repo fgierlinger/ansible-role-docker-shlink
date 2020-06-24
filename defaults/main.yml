@@ -8,6 +8,11 @@ shlink_published_ports:
   - '8080:{{ shlink_port }}'
 shlink_labels: {}
 
+# SHLINK SETTINGS
+# Tells if IP addresses from visitors should be obfuscated before storing them
+# in the database. Default value is true
+shlink_anonymize_remote_addr: true
+
 shlink_web_image: shlinkio/shlink-web-client
 shlink_web_image_tag: latest
 shlink_web_env: {}

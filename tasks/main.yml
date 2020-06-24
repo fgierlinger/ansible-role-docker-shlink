@@ -6,7 +6,7 @@
       - shlink_domain_schema is defined
       - shlink_domain_host is defined
       - shlink_domain_port is defined
-      
+
 - name: create shlink network
   docker_network:
       name: '{{ shlink_docker_network }}'
@@ -20,6 +20,7 @@
       env:
           SHORT_DOMAIN_HOST: '{{ shlink_domain_host }}'
           SHORT_DOMAIN_SCHEMA: '{{ shlink_domain_schema }}'
+          ANONYMIZE_REMOTE_ADDR: '{{ shlink_anonymize_remote_addr|string }}'
       networks:
           - name: '{{ shlink_docker_network }}'
       purge_networks: yes
@@ -42,7 +43,7 @@
     - name: set api key
       set_fact:
           shlink_api_key: "{{ shlink_new_api_key.stdout }}"
-      when: 
+      when:
         - shlink_new_api_key is defined
         - not ansible_check_mode
 
@@ -62,7 +63,7 @@
                   }
               ]
       notify: restart shlink_web
-  when: 
+  when:
     - not serverfile.stat.exists or docker_shlink_shlink is changed or shlink_recreate
     - not ansible_check_mode
 
