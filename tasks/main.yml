@@ -61,6 +61,7 @@
                       "apiKey": "{{ shlink_api_key }}"
                   }
               ]
+      notify: restart shlink_web
   when: 
     - not serverfile.stat.exists or docker_shlink_shlink is changed or shlink_recreate
     - not ansible_check_mode

@@ -1,0 +1,6 @@
+---
+- name: restart shlink_web
+  docker_container:
+    name: shlink_web
+    state: started
+    restart: true
