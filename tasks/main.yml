@@ -56,7 +56,7 @@
           content: |
               [
                   {
-                      "name": "Main server",
+                      "name": "{{ shlink_domain_host }} {{ shlink_api_key[0:4] }}",
                       "url": "{{ shlink_domain_schema }}://{{ shlink_domain_host }}:{{ shlink_domain_port }}",
                       "apiKey": "{{ shlink_api_key }}"
                   }
