@@ -5,12 +5,12 @@ services: docker
 env:
   matrix:
     - MOLECULE_DISTRO: centos7
-    
+
 # Install ansible
 addons:
   apt:
     packages:
-    - python-pip
+      - python-pip
 
 install:
   # Install ansible
