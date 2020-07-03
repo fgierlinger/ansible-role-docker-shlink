@@ -9,7 +9,7 @@
 
 - name: create shlink network
   docker_network:
-      name: '{{ shlink_docker_network }}'
+    name: '{{ shlink_docker_network }}'
 
 - name: set required environment vars for shlink
   set_fact:
@@ -24,27 +24,30 @@
 
 - name: deploy shlink
   docker_container:
-      name: shlink_shlink
-      image: '{{ shlink_image }}:{{ shlink_image_tag }}'
-      state: started
-      restart_policy: unless-stopped
-      env: '{{ _shlink_env }}'
-      networks:
-          - name: '{{ shlink_docker_network }}'
-      purge_networks: yes
-      published_ports: '{{ shlink_published_ports }}'
-      labels: '{{ shlink_labels }}'
+    name: shlink_shlink
+    image: '{{ shlink_image }}:{{ shlink_image_tag }}'
+    state: started
+    restart_policy: unless-stopped
+    env: '{{ _shlink_env }}'
+    networks:
+      - name: '{{ shlink_docker_network }}'
+    purge_networks: yes
+    published_ports: '{{ shlink_published_ports }}'
+    labels: '{{ shlink_labels }}'
   register: docker_shlink_shlink
 
 - name: check if server.json already exists
   stat:
-      path: '{{ shlink_server_json_file }}'
+    path: '{{ shlink_server_json_file }}'
   register: serverfile
 
 - name: get new api key and create server_json only if file does not exist
   block:
     - name: get api key from shlink
-      shell: docker exec shlink_shlink shlink api-key:generate | egrep -o '".*"' | tr -d '"'
+      shell: >
+        docker exec shlink_shlink shlink api-key:generate |
+        egrep -o '".*"' |
+        tr -d '"'
       register: shlink_new_api_key
       when: shlink_api_key is not defined
 
@@ -60,17 +63,10 @@
       tags: [never, debug]
 
     - name: create servers.json file
-      copy:
-          dest: '{{ shlink_server_json_file }}'
-          mode: 0644
-          content: |
-              [
-                  {
-                      "name": "{{ shlink_domain_host }} {{ shlink_api_key[0:4] }}",
-                      "url": "{{ shlink_domain_schema }}://{{ shlink_domain_host }}:{{ shlink_domain_port }}",
-                      "apiKey": "{{ shlink_api_key }}"
-                  }
-              ]
+      template:
+        src: servers.json.j2
+        dest: '{{ shlink_server_json_file }}'
+        mode: 0644
       notify: restart shlink_web
   when:
     - not serverfile.stat.exists or docker_shlink_shlink is changed or shlink_recreate
@@ -79,21 +75,21 @@
 
 - name: deploy shlink web
   docker_container:
-      name: shlink_web
-      image: '{{ shlink_web_image }}:{{ shlink_web_image_tag }}'
-      state: started
-      restart_policy: unless-stopped
-      env: '{{ shlink_web_env }}'
-      networks:
-          - name: '{{ shlink_docker_network }}'
-      purge_networks: yes
-      keep_volumes: no
-      volumes:
-          - '{{ shlink_server_json_file }}:/usr/share/nginx/html/servers.json'
-      published_ports: '{{ shlink_web_published_ports }}'
-      labels: '{{ shlink_web_labels }}'
+    name: shlink_web
+    image: '{{ shlink_web_image }}:{{ shlink_web_image_tag }}'
+    state: started
+    restart_policy: unless-stopped
+    env: '{{ shlink_web_env }}'
+    networks:
+      - name: '{{ shlink_docker_network }}'
+    purge_networks: yes
+    keep_volumes: no
+    volumes:
+      - '{{ shlink_server_json_file }}:/usr/share/nginx/html/servers.json'
+    published_ports: '{{ shlink_web_published_ports }}'
+    labels: '{{ shlink_web_labels }}'
 
 - name: wait for shlink web port to be available
   wait_for:
-      port: '{{ shlink_web_port }}'
-      state: started
+    port: '{{ shlink_web_port }}'
+    state: started
