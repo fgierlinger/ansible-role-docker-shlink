@@ -62,6 +62,7 @@
     - name: create servers.json file
       copy:
           dest: '{{ shlink_server_json_file }}'
+          mode: 0644
           content: |
               [
                   {
@@ -74,6 +75,7 @@
   when:
     - not serverfile.stat.exists or docker_shlink_shlink is changed or shlink_recreate
     - not ansible_check_mode
+    - not serverfile.stat.mode == '0644'
 
 - name: deploy shlink web
   docker_container:
