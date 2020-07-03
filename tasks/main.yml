@@ -53,7 +53,7 @@
 
     - name: set api key
       set_fact:
-          shlink_api_key: "{{ shlink_new_api_key.stdout }}"
+        shlink_api_key: "{{ shlink_new_api_key.stdout }}"
       when:
         - shlink_new_api_key is defined
         - not ansible_check_mode
@@ -69,7 +69,9 @@
         mode: 0644
       notify: restart shlink_web
   when:
-    - not serverfile.stat.exists or docker_shlink_shlink is changed or shlink_recreate
+    - not serverfile.stat.exists or
+      docker_shlink_shlink is changed or
+      shlink_recreate|bool
     - not ansible_check_mode
     - not serverfile.stat.mode == '0644'
 
