@@ -3,6 +3,7 @@
 shlink_image: shlinkio/shlink
 shlink_image_tag: latest
 shlink_env: {}
+
 shlink_port: 8080
 shlink_published_ports:
   - '8080:{{ shlink_port }}'

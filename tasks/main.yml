@@ -11,16 +11,24 @@
   docker_network:
       name: '{{ shlink_docker_network }}'
 
+- name: set required environment vars for shlink
+  set_fact:
+    _shlink_env_domain:
+      SHORT_DOMAIN_HOST: '{{ shlink_domain_host }}'
+      SHORT_DOMAIN_SCHEMA: '{{ shlink_domain_schema }}'
+      ANONYMIZE_REMOTE_ADDR: '{{ shlink_anonymize_remote_addr|string }}'
+
+- name: set env for shlink
+  set_fact:
+    _shlink_env: '{{ shlink_env | combine(_shlink_env_domain) }}'
+
 - name: deploy shlink
   docker_container:
       name: shlink_shlink
       image: '{{ shlink_image }}:{{ shlink_image_tag }}'
       state: started
       restart_policy: unless-stopped
-      env:
-          SHORT_DOMAIN_HOST: '{{ shlink_domain_host }}'
-          SHORT_DOMAIN_SCHEMA: '{{ shlink_domain_schema }}'
-          ANONYMIZE_REMOTE_ADDR: '{{ shlink_anonymize_remote_addr|string }}'
+      env: '{{ _shlink_env }}'
       networks:
           - name: '{{ shlink_docker_network }}'
       purge_networks: yes
